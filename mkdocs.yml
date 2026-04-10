@@ -1,0 +1,14 @@
+site_name: Win Ratio Statistics Repository
+theme:
+  name: mkdocs
+nav:
+  - Overview: index.md
+  - Methodology: methodology.md
+  - API Reference: api.md
+  - Configurations: configurations.md
+  - Workflows: workflows.md
+  - Study Reproduction: study_reproduction.md
+  - Anonymization: anonymization.md
+  - Data Dictionary: data_dictionary.md
+  - Reviewer FAQ: reviewer_faq.md
+  - Reproducibility: reproducibility.md

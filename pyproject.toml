@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "winratio"
+version = "0.1.0"
+description = "Python tools for propensity-score matching and hierarchical win-ratio analysis in retrospective cohorts."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Marc-Anthony Chouillard" },
+]
+keywords = ["statistics", "win ratio", "clinical outcomes", "hierarchical composite endpoint"]
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "scipy>=1.11",
+  "scikit-learn>=1.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/marcozer/Win-Ratio"
+Repository = "https://github.com/marcozer/Win-Ratio"
+Issues = "https://github.com/marcozer/Win-Ratio/issues"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+docs = [
+  "mkdocs>=1.6",
+]
+study = [
+  "matplotlib>=3.8",
+  "pyyaml>=6.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

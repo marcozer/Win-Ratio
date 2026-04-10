@@ -1,0 +1,29 @@
+{
+  "dataset_path": "data/public/distal_pancreatectomy_public.csv",
+  "source_type": "synthetic-fallback",
+  "rows": 240,
+  "columns": [
+    "site_id",
+    "year_band",
+    "age_band",
+    "sex",
+    "bmi_band",
+    "asa_group",
+    "malignant_case",
+    "neoadjuvant",
+    "pathology_group",
+    "treatment_group",
+    "spleen_management",
+    "mort90",
+    "clavien_major",
+    "popf_BC",
+    "reoperation",
+    "readmission",
+    "los_days"
+  ],
+  "audit_passed": true,
+  "audit_violations": [],
+  "notes": [
+    "Protected dataset not supplied; generated the public demonstration dataset."
+  ]
+}

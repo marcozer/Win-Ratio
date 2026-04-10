@@ -1,0 +1,17 @@
+{
+  "public_dataset": "data/public/distal_pancreatectomy_public.csv",
+  "config": "studies/distal_pancreatectomy/config/primary_analysis.yaml",
+  "reproducible_with_public_data": [
+    "results/public/win_ratio_summary.json",
+    "results/public/component_outcomes.csv",
+    "results/public/all_pairs_metrics.csv",
+    "results/public/matched_metrics.csv",
+    "results/public/win_ratio_overview.png"
+  ],
+  "protected_only_outputs": [],
+  "dataset_type": "synthetic-fallback",
+  "notes": [
+    "The committed public dataset is synthetic and preserves only the public analysis schema.",
+    "Protected source data are intentionally excluded from this repository."
+  ]
+}

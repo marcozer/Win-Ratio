@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+title: Win Ratio Statistics Repository
+message: If you use this software, please cite the repository and the associated study.
+type: software
+authors:
+  - family-names: Chouillard
+    given-names: Marc-Anthony
+repository-code: https://github.com/marcozer/Win-Ratio
+url: https://github.com/marcozer/Win-Ratio
+license: MIT
+version: 0.1.0

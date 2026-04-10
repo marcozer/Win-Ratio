@@ -1,0 +1,55 @@
+study_name: Distal pancreatectomy public statistical analysis
+
+all_pairs:
+  group_col: treatment_group
+  arm_a: HIGH_VOLUME
+  arm_b: OTHER
+  pair_strategy: all_pairs
+  outcomes:
+    - name: Mortality within 90 days
+      column: mort90
+      kind: binary
+      direction: lower
+      missing_is: tie
+    - name: Major complications
+      column: clavien_major
+      kind: binary
+      direction: lower
+      missing_is: tie
+    - name: Clinically relevant pancreatic fistula
+      column: popf_BC
+      kind: binary
+      direction: lower
+      missing_is: tie
+    - name: Reoperation
+      column: reoperation
+      kind: binary
+      direction: lower
+      missing_is: tie
+    - name: Readmission
+      column: readmission
+      kind: binary
+      direction: lower
+      missing_is: tie
+    - name: Length of stay
+      column: los_days
+      kind: continuous
+      direction: lower
+      tie_tol: 0.0
+      missing_is: tie
+
+matching:
+  covariates:
+    - age_band
+    - sex
+    - bmi_band
+    - asa_group
+    - malignant_case
+    - neoadjuvant
+    - pathology_group
+    - year_band
+  exact_cols:
+    - year_band
+  method: optimal
+  caliper: 0.4
+  trim_common_support: true

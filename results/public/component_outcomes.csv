@@ -1,0 +1,7 @@
+outcome,column,kind,direction,tie_tol,missing_is,A_arm_value,A_n,A_n_nonmissing,A_events,A_rate,B_arm_value,B_n,B_n_nonmissing,B_events,B_rate,A_mean,A_sd,A_median,A_q1,A_q3,B_mean,B_sd,B_median,B_q1,B_q3
+Mortality within 90 days,mort90,binary,lower,0.0,tie,HIGH_VOLUME,93,93,3.0,0.03225806451612903,OTHER,147,147,2.0,0.013605442176870748,,,,,,,,,,
+Major complications,clavien_major,binary,lower,0.0,tie,HIGH_VOLUME,93,93,16.0,0.17204301075268819,OTHER,147,147,31.0,0.2108843537414966,,,,,,,,,,
+Clinically relevant pancreatic fistula,popf_BC,binary,lower,0.0,tie,HIGH_VOLUME,93,93,6.0,0.06451612903225806,OTHER,147,147,20.0,0.1360544217687075,,,,,,,,,,
+Reoperation,reoperation,binary,lower,0.0,tie,HIGH_VOLUME,93,93,2.0,0.021505376344086023,OTHER,147,147,10.0,0.06802721088435375,,,,,,,,,,
+Readmission,readmission,binary,lower,0.0,tie,HIGH_VOLUME,93,93,5.0,0.053763440860215055,OTHER,147,147,13.0,0.08843537414965986,,,,,,,,,,
+Length of stay,los_days,continuous,lower,0.0,tie,HIGH_VOLUME,93,93,,,OTHER,147,147,,,9.311827956989248,3.0215835706508765,10.0,7.0,11.0,11.068027210884354,3.0015061606019087,11.0,9.0,13.0
