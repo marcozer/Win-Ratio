@@ -1,5 +1,9 @@
 # Win Ratio Statistics Repository
 
+If you cite this repository in academic work, please cite the associated article by Marc-Anthony Chouillard et al.; full publication details will be added here once the paper is published.
+
+Associated study authors: Marc-Anthony Chouillard ([ORCID 0009-0007-6439-6111](https://orcid.org/0009-0007-6439-6111)), Clément Pastier ([ORCID 0000-0002-7736-3999](https://orcid.org/0000-0002-7736-3999)), and Sébastien Gaujoux ([ORCID 0000-0002-1072-7639](https://orcid.org/0000-0002-1072-7639)), for the [Association Française de Chirurgie Study Group](https://www.association-francaise-chirurgie.fr/).
+
 This repository is the public statistical-analysis repository for the distal pancreatectomy study submitted to *JAMA Surgery*. It has two deliverables:
 
 1. A reusable Python library, [`winratio`](/Users/marc-anthony/NC/main/academic/win_ratio/src/winratio), for propensity-score matching and hierarchical win-ratio analysis in retrospective cohorts.
