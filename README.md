@@ -7,6 +7,8 @@ This repository is the public statistical-analysis repository for the distal pan
 
 Marc-Anthony Chouillard is the primary code author and maintainer.
 
+The motivating clinical question is whether patients undergoing minimally invasive distal pancreatectomy have better prioritized postoperative outcomes when treated in higher-volume centers than in lower-volume centers. The repository therefore combines a general-purpose library for retrospective comparative analyses with a concrete distal-pancreatectomy example using propensity-score matching followed by hierarchical win-ratio estimation.
+
 ## Public vs Protected Material
 
 - Included here: generic analysis code, synthetic public study data, analysis configurations, public summary outputs, tests, and documentation.
@@ -79,6 +81,16 @@ The public analysis configuration is [`studies/distal_pancreatectomy/config/prim
 1. Generates the public study dataset in [`data/public/distal_pancreatectomy_public.csv`](/Users/marc-anthony/NC/main/academic/win_ratio/data/public/distal_pancreatectomy_public.csv).
 2. Runs all-pairs and matched statistical analyses.
 3. Writes public summary outputs in [`results/public`](/Users/marc-anthony/NC/main/academic/win_ratio/results/public).
+
+In the distal-pancreatectomy example, the primary matched analysis compares higher-volume centers with lower-volume centers and resolves each matched pair across an ordered hierarchy of postoperative outcomes: 90-day mortality, major complications, clinically relevant pancreatic fistula, readmission, and length of stay.
+
+Example output:
+
+![Example hierarchical flow output for the matched high-volume versus lower-volume center analysis](figure2_consort_flow.png)
+
+*Example hierarchical flow output for the matched high-volume versus lower-volume center analysis.*
+
+This figure illustrates how the hierarchical comparison is resolved tier by tier after propensity-score matching. It is included here as an example of the statistical-analysis output produced by the workflow, not as part of any manuscript-generation system.
 
 ## Repository Layout
 
