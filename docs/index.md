@@ -1,13 +1,15 @@
-# Overview
+# WinRatioPy
 
-This documentation describes the public repository for the statistical analyses used in the distal pancreatectomy study.
+WinRatioPy implements hierarchical win-ratio and generalized pairwise-comparison analyses for clinical outcomes. It combines endpoint construction, matching or weighting, balance diagnostics, tier decomposition, and bootstrap inference in one installable package.
 
-The repository separates:
+The preferred import is `winratiopy`; `winratio` remains available for backward compatibility.
 
-- a generic Python library in `src/winratio` for propensity-score matching and win-ratio analysis
-- a study-specific public analysis layer in `studies/distal_pancreatectomy`
-- a public synthetic dataset and public analysis outputs
+The included MIDP workflow is a synthetic public demonstrator. It mirrors the current endpoint and design architecture but cannot reproduce protected AFC estimates without governed source data.
 
-The clinical use case in this repository is a retrospective comparison of outcomes after minimally invasive distal pancreatectomy, with emphasis on whether higher-volume centers achieve a more favorable ordered postoperative course than lower-volume centers after adjustment by propensity-score matching.
+Use the documentation in this order:
 
-Start with the root README for installation and commands, then use the pages in this site for the package API, study workflow, and data governance details.
+1. **Methodology** for estimands, hierarchy behavior, and inference.
+2. **API Reference** for callable objects.
+3. **Configurations** for YAML-defined analyses.
+4. **Study Reproduction** for the MIDP demonstrator.
+5. **Reproducibility** and **Anonymization** for the public/protected boundary.

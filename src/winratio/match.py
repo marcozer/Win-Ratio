@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Literal, Optional
+from typing import Any, List, Literal, Optional
 
 import numpy as np
 import pandas as pd
@@ -29,6 +29,9 @@ class MatchResult:
     method: str = "nearest"
     treat_col: Optional[str] = None
     treated_value: Optional[object] = None
+    missing: str = "drop"
+    rows_dropped_missing: int = 0
+    model: Optional[Pipeline] = None
 
 
 def _standardized_mean_diff(x_t: np.ndarray, x_c: np.ndarray) -> float:
@@ -59,14 +62,6 @@ def _balance_table(design_matrix: pd.DataFrame, treat_col: str, columns: List[st
     return pd.DataFrame(rows)
 
 
-def _default_covariates(df: pd.DataFrame, treat_col: str, exact_cols: Optional[List[str]]) -> List[str]:
-    excluded = {treat_col, "_T", "_PS", "_LPS", "PAIR_ID"}
-    if exact_cols:
-        excluded.update(exact_cols)
-    covariates = [column for column in df.columns if column not in excluded]
-    return [column for column in covariates if df[column].nunique(dropna=True) > 1]
-
-
 def propensity_match(
     df: pd.DataFrame,
     treat_col: str,
@@ -77,18 +72,22 @@ def propensity_match(
     caliper: Optional[float] = None,
     method: Literal["nearest", "optimal"] = "optimal",
     trim_common_support: bool = True,
+    missing: Literal["drop", "simple"] = "drop",
     random_state: int = 42,
 ) -> MatchResult:
-    """Perform 1:1 propensity-score matching for a binary treatment indicator."""
+    """Perform 1:1 propensity-score matching for a binary treatment indicator.
+
+    Complete-case estimation is the default. Single imputation is available
+    only through the explicit ``missing="simple"`` option.
+    """
 
     data = df.copy()
     data = data[data[treat_col].notna()].copy()
     data["_T"] = (data[treat_col] == treated_value).astype(int)
 
     if covariates is None:
-        covariates = _default_covariates(data, treat_col=treat_col, exact_cols=exact_cols)
-    else:
-        covariates = list(covariates)
+        raise ValueError("covariates must be specified explicitly to prevent accidental outcome adjustment")
+    covariates = list(covariates)
 
     if additional_covariates:
         for column in additional_covariates:
@@ -100,34 +99,33 @@ def propensity_match(
 
     if not covariates:
         raise ValueError("propensity_match requires at least one covariate.")
+    if missing not in {"drop", "simple"}:
+        raise ValueError("missing must be 'drop' or 'simple'")
+
+    complete_columns = list(covariates) + list(exact_cols or [])
+    rows_before_missing = len(data)
+    if missing == "drop":
+        data = data.dropna(subset=complete_columns).copy()
+    rows_dropped_missing = rows_before_missing - len(data)
+    if data["_T"].nunique() < 2:
+        raise ValueError("Matching requires both treatment arms after missing-data handling.")
 
     numeric_cols = [column for column in covariates if data[column].dtype.kind in "iufc"]
     categorical_cols = [column for column in covariates if column not in numeric_cols]
 
-    preprocessor = ColumnTransformer(
-        [
-            (
-                "num",
-                Pipeline(
-                    [
-                        ("impute", SimpleImputer(strategy="median")),
-                        ("scale", StandardScaler()),
-                    ]
-                ),
-                numeric_cols,
-            ),
-            (
-                "cat",
-                Pipeline(
-                    [
-                        ("impute", SimpleImputer(strategy="most_frequent")),
-                        ("encode", OneHotEncoder(handle_unknown="ignore")),
-                    ]
-                ),
-                categorical_cols,
-            ),
-        ]
-    )
+    num_steps = []
+    cat_steps = []
+    if missing == "simple":
+        num_steps.append(("impute", SimpleImputer(strategy="median")))
+        cat_steps.append(("impute", SimpleImputer(strategy="most_frequent")))
+    num_steps.append(("scale", StandardScaler()))
+    cat_steps.append(("encode", OneHotEncoder(handle_unknown="ignore")))
+    transformers = []
+    if numeric_cols:
+        transformers.append(("num", Pipeline(num_steps), numeric_cols))
+    if categorical_cols:
+        transformers.append(("cat", Pipeline(cat_steps), categorical_cols))
+    preprocessor = ColumnTransformer(transformers)
 
     model = Pipeline(
         [
@@ -177,7 +175,7 @@ def propensity_match(
 
     matched_rows = []
     pair_id = 0
-    used_controls: set[int] = set()
+    used_controls: set[Any] = set()
 
     strata_values = [tuple([None])]
     if exact_cols:
@@ -204,7 +202,7 @@ def propensity_match(
             for treated_index, distance, control_idx in zip(treated.index, distances.ravel(), indices.ravel()):
                 if distance > caliper:
                     continue
-                control_index = int(control.index[control_idx])
+                control_index = control.index[control_idx]
                 if control_index in used_controls:
                     continue
                 used_controls.add(control_index)
@@ -224,8 +222,8 @@ def propensity_match(
             for row_idx, col_idx in zip(row_ind, col_ind):
                 if col_idx >= control.shape[0] or cost[row_idx, col_idx] > caliper:
                     continue
-                treated_index = int(treated.index[row_idx])
-                control_index = int(control.index[col_idx])
+                treated_index = treated.index[row_idx]
+                control_index = control.index[col_idx]
                 if control_index in used_controls:
                     continue
                 used_controls.add(control_index)
@@ -249,6 +247,9 @@ def propensity_match(
             method=method,
             treat_col=treat_col,
             treated_value=treated_value,
+            missing=missing,
+            rows_dropped_missing=rows_dropped_missing,
+            model=model,
         )
 
     matched_df = pd.concat(matched_rows, axis=0)
@@ -278,4 +279,7 @@ def propensity_match(
         method=method,
         treat_col=treat_col,
         treated_value=treated_value,
+        missing=missing,
+        rows_dropped_missing=rows_dropped_missing,
+        model=model,
     )

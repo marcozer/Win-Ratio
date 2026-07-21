@@ -1,22 +1,25 @@
-# Analysis Reproduction
+# MIDP Study Demonstrator
 
-The public analysis layer is intentionally limited to public-safe analytical materials. It does not include any manuscript-generation workflow.
+The public workflow applies the current analysis architecture to synthetic records. It is intended for code inspection, execution, and unit testing; it does not reproduce observed AFC estimates.
 
-The study example focuses on minimally invasive distal pancreatectomy. The main question is whether higher-volume centers outperform lower-volume centers on a prioritized postoperative hierarchy after propensity-score matching.
+## Locked Public Architecture
 
-Files of interest:
+- Exposure: study-period mean of more than 10 all minimally invasive pancreatic resections per complete contributed year.
+- Primary design: complete-case 1:1 optimal propensity matching without replacement, common support, and exact year-band, hospital-type, and neoadjuvant strata.
+- Primary hierarchy: 90-day mortality, major complications, CR-POPF, readmission, exact completed-day LOS.
+- Terminal rule: both deaths tie because time to death is unavailable.
+- Sensitivities: 1-day and 2-day LOS margins; `<=7`, `8-13`, and `>13` day LOS categories; no LOS; graded Clavien and POPF severity.
+- Efficiency sensitivities: matched-sample all-pair GPC and overlap-weighted all-pair GPC.
+- Binary comparators: component-derived ideal outcome and textbook outcome.
 
-- `data/public/distal_pancreatectomy_public.csv`
-- `data/public/distal_pancreatectomy_manifest.json`
-- `studies/distal_pancreatectomy/config/primary_analysis.yaml`
-- `results/public/win_ratio_summary.json`
-- `results/public/reproducibility_manifest.json`
-- `results/public/example_flow_hv_vs_nonhigh.png`
+## Outputs
 
-The default committed dataset is synthetic. The export script can also process a protected registry export and apply the same public disclosure audit before writing a row-level public dataset.
+- `win_ratio_summary.json`: principal estimands and bootstrap metadata.
+- `matching_balance.csv`: pre/post matching SMD, KS, and variance diagnostics.
+- `hierarchy_sensitivities.csv`: LOS and severity variants.
+- `tier_resolution.csv`: conditional first-resolving tiers.
+- `binary_benchmarks.csv`: IO/TBO rates, matched differences, and discordance.
+- `overlap_weighting_balance.csv`: weighted diagnostics.
+- `win_ratio_overview.svg`: editable-text summary figure.
 
-Example output:
-
-![Example matched-analysis flow diagram](assets/example_flow_hv_vs_nonhigh.png)
-
-This flow diagram shows how matched pairs are resolved sequentially across mortality, major complications, clinically relevant pancreatic fistula, readmission, and length of stay. It is intended to help readers understand the interpretation of the win-ratio framework in this surgical setting.
+The manuscript's 5000-replicate AFC interval, 50-imputation analysis, observed clinical screen, and trial simulations require protected data and are listed as protected-only in the manifest.

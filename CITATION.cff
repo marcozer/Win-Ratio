@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: Win Ratio Statistics Repository
+title: WinRatioPy
 message: If you use this software, please cite the repository and the associated study.
 type: software
 authors:
@@ -8,4 +8,4 @@ authors:
 repository-code: https://github.com/marcozer/Win-Ratio
 url: https://github.com/marcozer/Win-Ratio
 license: MIT
-version: 0.1.0
+version: 0.2.0

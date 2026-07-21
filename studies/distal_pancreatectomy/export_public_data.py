@@ -6,11 +6,27 @@ from pathlib import Path
 
 import pandas as pd
 
-from .preprocess import audit_public_dataframe, create_synthetic_public_dataset, derive_public_analysis_dataset, write_public_dataset
+from .preprocess import (
+    audit_public_dataframe,
+    create_synthetic_public_dataset,
+    derive_public_analysis_dataset,
+    write_public_dataset,
+)
 
 
-def build_public_dataset(protected_csv: Path | None, output_path: Path, seed: int) -> dict:
+def build_public_dataset(
+    protected_csv: Path | None,
+    output_path: Path,
+    seed: int,
+    *,
+    allow_protected_export: bool = False,
+) -> dict:
     if protected_csv is not None and protected_csv.exists():
+        if not allow_protected_export:
+            raise ValueError(
+                "Protected-data export is disabled by default. "
+                "Use the explicit local-only flag after governance review."
+            )
         raw_df = pd.read_csv(protected_csv)
         public_df = derive_public_analysis_dataset(raw_df)
         is_safe, violations = audit_public_dataframe(public_df)
@@ -57,12 +73,22 @@ def parse_args() -> argparse.Namespace:
         help="Output manifest path.",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed for the synthetic fallback.")
+    parser.add_argument(
+        "--allow-protected-export",
+        action="store_true",
+        help="Enable local processing of a governed protected export; never commit the resulting rows.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    manifest = build_public_dataset(args.protected_csv, args.output, args.seed)
+    manifest = build_public_dataset(
+        args.protected_csv,
+        args.output,
+        args.seed,
+        allow_protected_export=args.allow_protected_export,
+    )
     args.manifest.parent.mkdir(parents=True, exist_ok=True)
     args.manifest.write_text(json.dumps(manifest, indent=2))
 

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Dict, Any, Tuple, Optional, List
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-from .config import WinRatioConfig, WinRatioOutcome, MultiArmWinRatioConfig
+from .config import MultiArmWinRatioConfig, WinRatioConfig, WinRatioOutcome
 
 
 def _compare_single_outcome(
@@ -45,14 +45,20 @@ def _compare_single_outcome(
                 return -1
             return 0
 
-    # continuous - handle different LOS tolerance modes
+    a_numeric = float(a_val)
+    b_numeric = float(b_val)
+    if outcome.cutpoints is not None:
+        a_numeric = float(np.searchsorted(outcome.cutpoints, a_numeric, side="left"))
+        b_numeric = float(np.searchsorted(outcome.cutpoints, b_numeric, side="left"))
+
+    # Continuous/ordinal tiers retain legacy LOS modes for compatibility.
     los_mode = getattr(outcome, 'los_tolerance_mode', 'exact')
     los_threshold = getattr(outcome, 'los_threshold', None)
 
     if los_mode == "threshold_based" and los_threshold is not None:
         # Winner is the one meeting threshold when the other doesn't
-        a_meets = float(a_val) <= los_threshold
-        b_meets = float(b_val) <= los_threshold
+        a_meets = a_numeric <= los_threshold
+        b_meets = b_numeric <= los_threshold
         if a_meets and not b_meets:
             return 1 if outcome.direction == "lower" else -1
         if b_meets and not a_meets:
@@ -62,9 +68,9 @@ def _compare_single_outcome(
 
     if los_mode == "tolerance_1day":
         # Need >= 1 day difference for win/loss
-        diff = float(a_val) - float(b_val)
+        diff = a_numeric - b_numeric
         tolerance = 1.0
-        if abs(diff) < tolerance:
+        if abs(diff) <= tolerance:
             return 0
         if outcome.direction == "lower":
             return 1 if diff < 0 else -1
@@ -72,7 +78,7 @@ def _compare_single_outcome(
             return 1 if diff > 0 else -1
 
     # exact mode (default) - use tie_tol
-    diff = float(a_val) - float(b_val)
+    diff = a_numeric - b_numeric
     if abs(diff) <= outcome.tie_tol:
         return 0
     if outcome.direction == "lower":
@@ -94,6 +100,8 @@ def _compare_pair(
         res = _compare_single_outcome(a_row.get(oc.column), b_row.get(oc.column), oc)
         if res != 0:
             return res
+        if _is_terminal_tie(a_row.get(oc.column), b_row.get(oc.column), oc):
+            return 0
     return 0
 
 
@@ -110,7 +118,17 @@ def _compare_pair_with_level(
         res = _compare_single_outcome(a_row.get(oc.column), b_row.get(oc.column), oc)
         if res != 0:
             return res, idx
+        if _is_terminal_tie(a_row.get(oc.column), b_row.get(oc.column), oc):
+            return 0, None
     return 0, None
+
+
+def _is_terminal_tie(a_val: Any, b_val: Any, outcome: WinRatioOutcome) -> bool:
+    """Return whether an equal terminal event stops evaluation of lower tiers."""
+
+    if not outcome.terminal or pd.isna(a_val) or pd.isna(b_val):
+        return False
+    return bool(a_val == outcome.terminal_value and b_val == outcome.terminal_value)
 
 
 def compute_win_ratio_all_pairs(
@@ -181,6 +199,7 @@ def compute_win_ratio_all_pairs(
         a_reset = a.reset_index(drop=True)
         b_reset = b.reset_index(drop=True)
         unresolved = np.ones((n_a, n_b), dtype=bool)
+        terminal_ties = np.zeros((n_a, n_b), dtype=bool)
 
         for idx, oc in enumerate(cfg.outcomes):
             a_vals = _col_as_float_array(a_reset, oc.column)
@@ -192,11 +211,13 @@ def compute_win_ratio_all_pairs(
             tier_wins[idx] = int(eff_win.sum())
             tier_losses[idx] = int(eff_loss.sum())
 
-            unresolved &= tie_mask
+            terminal_mask = unresolved & _terminal_tie_mask(a_vals, b_vals, oc)
+            terminal_ties |= terminal_mask
+            unresolved &= tie_mask & ~terminal_mask
 
         wins = int(sum(tier_wins))
         losses = int(sum(tier_losses))
-        ties = int(unresolved.sum())
+        ties = int(unresolved.sum() + terminal_ties.sum())
         tier_ties = ties
 
     wr = np.nan
@@ -223,6 +244,7 @@ def compute_win_ratio_all_pairs(
             "tier_wins": tier_wins,
             "tier_losses": tier_losses,
             "tier_ties": tier_ties,
+            "tier_names": [outcome.name for outcome in cfg.outcomes],
         },
     }
 
@@ -237,6 +259,15 @@ def compute_win_ratio(
     """
     if not cfg.outcomes:
         raise ValueError("No outcomes configured for win ratio.")
+    required = [cfg.group_col, *[outcome.column for outcome in cfg.outcomes]]
+    if cfg.pair_strategy == "matched" and cfg.pair_id:
+        required.append(cfg.pair_id)
+    missing_columns = sorted({column for column in required if column not in df.columns})
+    if missing_columns:
+        raise ValueError(f"required columns not found: {missing_columns}")
+    observed_arms = set(df[cfg.group_col].dropna().unique())
+    if cfg.arm_a not in observed_arms or cfg.arm_b not in observed_arms:
+        raise ValueError("both configured arms must be present")
 
     # Matched strategy: if pair_id is provided, compute pairwise only
     if cfg.pair_strategy == 'matched' and cfg.pair_id:
@@ -294,6 +325,7 @@ def compute_win_ratio(
                 "tier_wins": tier_wins,
                 "tier_losses": tier_losses,
                 "tier_ties": strat_ties,
+                "tier_names": [outcome.name for outcome in cfg.outcomes],
             },
         }
         return {"overall": overall, "overall_unstratified": overall_unstratified, "by_strata": per}
@@ -372,6 +404,7 @@ def compute_win_ratio_matched(
             'pair_id': cfg.pair_id,
             'tier_wins': tier_wins,
             'tier_losses': tier_losses,
+            'tier_names': [outcome.name for outcome in cfg.outcomes],
         }
     }
 
@@ -425,8 +458,13 @@ def bootstrap_win_ratio_matched(
         upper = np.percentile(finite, 97.5)
         ci = (float(lower), float(upper))
 
-    point = compute_win_ratio_matched(df, cfg)['wr']
-    return {'wr': float(point) if np.isfinite(point) else point, 'ci': ci, 'n_boot': n_boot, 'wr_samples': finite.tolist()}
+    point = compute_win_ratio_matched(df, cfg)["wr"]
+    return {
+        "wr": float(point) if np.isfinite(point) else point,
+        "ci": ci,
+        "n_boot": n_boot,
+        "wr_samples": finite.tolist(),
+    }
 
 
 def bootstrap_win_ratio(
@@ -682,7 +720,13 @@ def _outcome_masks(
         tie = ~(win | loss)
         return win, loss, tie
 
-    # continuous - handle different LOS tolerance modes
+    if outcome.cutpoints is not None:
+        a = np.searchsorted(outcome.cutpoints, a, side="left").astype(float)
+        b = np.searchsorted(outcome.cutpoints, b, side="left").astype(float)
+        a[a_nan[:, 0]] = np.nan
+        b[b_nan[0, :]] = np.nan
+
+    # Continuous/ordinal tiers retain legacy LOS modes for compatibility.
     los_mode = getattr(outcome, 'los_tolerance_mode', 'exact')
     los_threshold = getattr(outcome, 'los_threshold', None)
 
@@ -697,7 +741,7 @@ def _outcome_masks(
             win = ~a_meets & b_meets
             loss = a_meets & ~b_meets
     elif los_mode == "tolerance_1day":
-        # Need >= 1 day difference for win/loss
+        # A 1-unit clinical margin treats differences of 0 or 1 as ties.
         diff = a[:, None] - b[None, :]
         tolerance = 1.0
         if outcome.direction == "lower":
@@ -728,6 +772,22 @@ def _outcome_masks(
         win &= ~missing
     tie = ~(win | loss)
     return win, loss, tie
+
+
+def _terminal_tie_mask(
+    a_vals: np.ndarray,
+    b_vals: np.ndarray,
+    outcome: WinRatioOutcome,
+) -> np.ndarray:
+    """Return pair cells where a shared terminal event stops lower tiers."""
+
+    shape = (a_vals.shape[0], b_vals.shape[0])
+    if not outcome.terminal:
+        return np.zeros(shape, dtype=bool)
+    a = a_vals[:, None]
+    b = b_vals[None, :]
+    valid = ~np.isnan(a) & ~np.isnan(b)
+    return valid & (a == outcome.terminal_value) & (b == outcome.terminal_value)
 
 
 def bootstrap_win_ratio_cluster_within_arm(
@@ -856,9 +916,10 @@ def _precompute_pair_result_matrices(
         eff_loss = unresolved & loss_mask
         W[eff_win] = 1
         L[eff_loss] = 1
-        unresolved &= tie_mask
+        terminal_mask = unresolved & _terminal_tie_mask(a_vals, b_vals, oc)
+        unresolved &= tie_mask & ~terminal_mask
 
-    T = unresolved.astype(np.uint8)
+    T = (~(W.astype(bool) | L.astype(bool))).astype(np.uint8)
     return W, L, T
 
 
@@ -925,10 +986,6 @@ def compute_win_ratio_multi_arm(
 
     # Summary
     n_comparisons = len(results)
-    n_significant_nominal = sum(
-        1 for r in results
-        if r.get("wr", np.nan) != 1.0 and np.isfinite(r.get("wr", np.nan))
-    )
 
     return {
         "comparisons": results,

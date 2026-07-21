@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 
-from .config import WinRatioConfig, WinRatioOutcome
+from .config import WinRatioConfig
 
 
 def summarize_component_outcomes(df: pd.DataFrame, cfg: WinRatioConfig) -> pd.DataFrame:
@@ -84,23 +84,136 @@ def summarize_wr_metrics_from_overall(overall: Dict[str, Any]) -> pd.DataFrame:
 
     cum_w = 0
     cum_l = 0
-    for i, (w, l) in enumerate(zip(tier_wins, tier_losses), 1):
-        w = int(w)
-        l = int(l)
-        resolved = w + l
-        cum_w += w
-        cum_l += l
+    for i, (tier_win, tier_loss) in enumerate(zip(tier_wins, tier_losses), 1):
+        tier_win = int(tier_win)
+        tier_loss = int(tier_loss)
+        resolved = tier_win + tier_loss
+        cum_w += tier_win
+        cum_l += tier_loss
         cum_wr = np.nan
         if cum_l > 0:
             cum_wr = cum_w / cum_l
         elif cum_w > 0 and cum_l == 0:
             cum_wr = np.inf
 
-        rows.append({"metric": f"tier{i}_wins", "value": w})
-        rows.append({"metric": f"tier{i}_losses", "value": l})
+        rows.append({"metric": f"tier{i}_wins", "value": tier_win})
+        rows.append({"metric": f"tier{i}_losses", "value": tier_loss})
         rows.append({"metric": f"tier{i}_resolved", "value": resolved})
         rows.append({"metric": f"tier{i}_resolved_pct", "value": (resolved / total_pairs) if total_pairs else np.nan})
         rows.append({"metric": f"tier{i}_cum_wr", "value": cum_wr})
+
+    return pd.DataFrame(rows)
+
+
+def paired_risk_difference_bootstrap(
+    df: pd.DataFrame,
+    cfg: WinRatioConfig,
+    n_boot: int = 1000,
+    seed: int = 42,
+    alpha: float = 0.05,
+) -> pd.DataFrame:
+    """Estimate binary outcome risk differences after 1:1 matching.
+
+    The estimate is arm A event risk minus arm B event risk. Bootstrap samples
+    resample complete matched pairs with replacement, so concordant pairs remain
+    in the estimate with a pair-level difference of zero.
+    """
+    if cfg.pair_strategy != "matched" or not cfg.pair_id:
+        raise ValueError("paired_risk_difference_bootstrap requires matched strategy and pair_id")
+    if cfg.group_col not in df.columns:
+        raise ValueError(f"group_col {cfg.group_col!r} not found in dataframe")
+    if cfg.pair_id not in df.columns:
+        raise ValueError(f"pair_id {cfg.pair_id!r} not found in dataframe")
+    if n_boot <= 0:
+        raise ValueError("n_boot must be positive")
+    if not 0.0 < alpha < 1.0:
+        raise ValueError("alpha must be in (0, 1)")
+
+    rng = np.random.default_rng(seed)
+    rows: List[Dict[str, Any]] = []
+
+    for oc in cfg.outcomes:
+        if oc.kind != "binary":
+            continue
+
+        pair_diffs: List[float] = []
+        a_values: List[int] = []
+        b_values: List[int] = []
+        n_eligible_pairs = 0
+
+        for _, g in df.groupby(cfg.pair_id):
+            ga = g[g[cfg.group_col] == cfg.arm_a]
+            gb = g[g[cfg.group_col] == cfg.arm_b]
+            if len(ga) != 1 or len(gb) != 1:
+                continue
+
+            n_eligible_pairs += 1
+            a_val = pd.to_numeric(pd.Series([ga.iloc[0].get(oc.column)]), errors="coerce").iloc[0]
+            b_val = pd.to_numeric(pd.Series([gb.iloc[0].get(oc.column)]), errors="coerce").iloc[0]
+            if pd.isna(a_val) or pd.isna(b_val):
+                continue
+            if a_val not in (0, 1) or b_val not in (0, 1):
+                continue
+
+            a_int = int(a_val)
+            b_int = int(b_val)
+            a_values.append(a_int)
+            b_values.append(b_int)
+            pair_diffs.append(float(a_int - b_int))
+
+        diffs = np.asarray(pair_diffs, dtype=float)
+        a_arr = np.asarray(a_values, dtype=int)
+        b_arr = np.asarray(b_values, dtype=int)
+        n_complete = int(diffs.size)
+
+        if n_complete:
+            risk_a = float(a_arr.mean())
+            risk_b = float(b_arr.mean())
+            rd = float(diffs.mean())
+            samples = np.empty(n_boot, dtype=float)
+            for i in range(n_boot):
+                sample_idx = rng.integers(0, n_complete, size=n_complete)
+                samples[i] = float(diffs[sample_idx].mean())
+            ci = (
+                float(np.percentile(samples, 100 * alpha / 2)),
+                float(np.percentile(samples, 100 * (1 - alpha / 2))),
+            )
+        else:
+            risk_a = np.nan
+            risk_b = np.nan
+            rd = np.nan
+            ci = (np.nan, np.nan)
+
+        a_event_b_no_event = int(((a_arr == 1) & (b_arr == 0)).sum()) if n_complete else 0
+        a_no_event_b_event = int(((a_arr == 0) & (b_arr == 1)).sum()) if n_complete else 0
+        both_event = int(((a_arr == 1) & (b_arr == 1)).sum()) if n_complete else 0
+        neither_event = int(((a_arr == 0) & (b_arr == 0)).sum()) if n_complete else 0
+
+        rows.append(
+            {
+                "outcome": oc.name,
+                "column": oc.column,
+                "A_arm_value": cfg.arm_a,
+                "B_arm_value": cfg.arm_b,
+                "n_pairs_eligible": int(n_eligible_pairs),
+                "n_pairs_complete": n_complete,
+                "n_pairs_excluded_missing_or_invalid": int(n_eligible_pairs - n_complete),
+                "A_events": int(a_arr.sum()) if n_complete else 0,
+                "B_events": int(b_arr.sum()) if n_complete else 0,
+                "A_risk": risk_a,
+                "B_risk": risk_b,
+                "risk_difference_A_minus_B": rd,
+                "ci_lower": ci[0],
+                "ci_upper": ci[1],
+                "alpha": float(alpha),
+                "n_boot": int(n_boot),
+                "seed": int(seed),
+                "both_event": both_event,
+                "neither_event": neither_event,
+                "A_event_B_no_event": a_event_b_no_event,
+                "A_no_event_B_event": a_no_event_b_event,
+            }
+        )
 
     return pd.DataFrame(rows)
 

@@ -1,4 +1,4 @@
-site_name: Win Ratio Statistics Repository
+site_name: WinRatioPy
 theme:
   name: mkdocs
 nav:

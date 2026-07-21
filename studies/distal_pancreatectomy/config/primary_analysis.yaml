@@ -1,6 +1,13 @@
-study_name: Distal pancreatectomy public statistical analysis
+study_name: Distal pancreatectomy public statistical demonstrator
+analysis_version: v21
 
-all_pairs:
+volume_definition:
+  numerator: all minimally invasive pancreatic resections
+  denominator: complete contributed years
+  higher_volume: mean annual volume >10
+  lower_volume: mean annual volume <=10
+
+primary:
   group_col: treatment_group
   arm_a: HIGH_VOLUME
   arm_b: OTHER
@@ -10,6 +17,8 @@ all_pairs:
       column: mort90
       kind: binary
       direction: lower
+      terminal: true
+      terminal_value: 1
       missing_is: tie
     - name: Major complications
       column: clavien_major
@@ -21,35 +30,71 @@ all_pairs:
       kind: binary
       direction: lower
       missing_is: tie
-    - name: Reoperation
-      column: reoperation
-      kind: binary
-      direction: lower
-      missing_is: tie
     - name: Readmission
       column: readmission
       kind: binary
       direction: lower
       missing_is: tie
-    - name: Length of stay
+    - name: Length of stay, exact completed days
       column: los_days
       kind: continuous
       direction: lower
-      tie_tol: 0.0
+      tie_tol: 0
       missing_is: tie
+
+sensitivities:
+  los_margin_1_day:
+    label: LOS differences of 1 day or less tie
+    los_margin: 1
+  los_margin_2_days:
+    label: LOS differences of 2 days or less tie
+    los_margin: 2
+  categorical_los:
+    label: LOS categorized as <=7, 8-13, or >13 days
+    los_cutpoints: [7, 13]
+  no_los:
+    label: Four-tier hierarchy without LOS
+    omit_los: true
+  graded_2_day:
+    label: Graded morbidity and fistula severity with a 2-day LOS margin
+    graded: true
+    los_margin: 2
+
+binary_benchmarks:
+  outcomes:
+    - name: Ideal outcome
+      column: ideal_outcome
+      kind: binary
+      direction: higher
+    - name: Textbook outcome
+      column: textbook_outcome
+      kind: binary
+      direction: higher
 
 matching:
   covariates:
-    - age_band
+    - age_years
     - sex
-    - bmi_band
-    - asa_group
+    - bmi
+    - asa_ge3
+    - cci
     - malignant_case
-    - neoadjuvant
     - pathology_group
-    - year_band
+    - tumor_size_mm
+    - functional_impairment
+    - prior_abdominal_surgery
+    - chronic_pancreatitis
+    - kidney_disease
+    - cardiac_history
   exact_cols:
     - year_band
+    - hospital_type
+    - neoadjuvant
   method: optimal
-  caliper: 0.4
+  trim_common_support: true
+  missing: drop
+
+weighting:
+  estimand: overlap
+  missing: drop
   trim_common_support: true

@@ -1,16 +1,20 @@
-# Reproducibility Limits
+# Reproducibility Boundary
 
-The public repository is designed for methodological transparency and reviewer inspection, not for release of protected patient-level data.
+Fully public and reproducible:
 
-Publicly reproducible:
+- package installation and build;
+- endpoint behavior and design diagnostics;
+- unit and integration tests;
+- synthetic MIDP generation;
+- matching, GPC, weighting, benchmark, sensitivity, and bootstrap demonstrators;
+- committed synthetic outputs and editable-text SVG figure.
 
-- package installation
-- unit and smoke tests
-- synthetic study dataset generation
-- public all-pairs and matched analysis workflow
-- public summary outputs
+Not reproducible from committed files:
 
-Not publicly reproducible from committed files:
+- protected AFC row-level estimates;
+- the manuscript's 5000-replicate refit/rematch interval;
+- 50 center-aware chained-equation imputations;
+- the observed clinical screen and trial simulations;
+- manuscript and journal-submission assets.
 
-- row-level analyses on the original protected registry export
-- any manuscript-generation workflow or journal submission assets
+The code exposes the required statistical primitives, but the public synthetic estimates must never be presented as manuscript results. `results/public/reproducibility_manifest.json` records this boundary in machine-readable form.

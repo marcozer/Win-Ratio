@@ -1,115 +1,125 @@
-# Win Ratio Statistics Repository
+# WinRatioPy
 
-If you cite this repository in academic work, please cite the associated article by Marc-Anthony Chouillard et al.; full publication details will be added here once the paper is published.
+`WinRatioPy` is a tested Python package for prioritized clinical outcomes. It supports assigned-pair win ratios, all-pair generalized pairwise comparisons (GPC), propensity-score matching and weighting, tier-level decomposition, and cluster-aware inference.
 
-Associated study authors: Marc-Anthony Chouillard ([ORCID 0009-0007-6439-6111](https://orcid.org/0009-0007-6439-6111)), Clément Pastier ([ORCID 0000-0002-7736-3999](https://orcid.org/0000-0002-7736-3999)), and Sébastien Gaujoux ([ORCID 0000-0002-1072-7639](https://orcid.org/0000-0002-1072-7639)), for the [Association Française de Chirurgie Study Group](https://www.association-francaise-chirurgie.fr/).
+The repository also contains a synthetic public demonstrator for a national minimally invasive distal pancreatectomy (MIDP) analysis. Protected AFC registry data, manuscript-generation files, and observed manuscript estimates are not included.
 
-This repository is the public statistical-analysis repository for the distal pancreatectomy study submitted to *JAMA Surgery*. It has two deliverables:
+## Install
 
-1. A reusable Python library, [`winratio`](/Users/marc-anthony/NC/main/academic/win_ratio/src/winratio), for propensity-score matching and hierarchical win-ratio analysis in retrospective cohorts.
-2. A study-specific analysis layer in [`studies/distal_pancreatectomy`](/Users/marc-anthony/NC/main/academic/win_ratio/studies/distal_pancreatectomy) that reproduces the statistical analysis from a public-safe schema.
+```bash
+python -m pip install -e ".[dev,docs,study]"
+```
 
-Marc-Anthony Chouillard is the primary code author and maintainer.
-
-The motivating clinical question is whether patients undergoing minimally invasive distal pancreatectomy have better prioritized postoperative outcomes when treated in higher-volume centers than in lower-volume centers. The repository therefore combines a general-purpose library for retrospective comparative analyses with a concrete distal-pancreatectomy example using propensity-score matching followed by hierarchical win-ratio estimation.
-
-## Public vs Protected Material
-
-- Included here: generic analysis code, synthetic public study data, analysis configurations, public summary outputs, tests, and documentation.
-- Excluded from this public tree: raw registry exports, direct identifiers, site names, exact dates, free-text clinical narratives, manuscript-generation files, submission files, and legacy private analyses.
-- The committed study dataset is a synthetic fallback. The repository keeps the public analysis schema used by the study scripts while avoiding unsafe row-level disclosure.
+The preferred import is `winratiopy`. Existing code that imports `winratio` remains compatible.
 
 ## Quick Start
-
-Install the package and the analysis/documentation extras:
-
-```bash
-pip install -e .[dev,docs,study]
-```
-
-Run the generic package example:
-
-```bash
-python examples/basic_usage.py
-```
-
-Regenerate the public analysis dataset and outputs:
-
-```bash
-python -m studies.distal_pancreatectomy.export_public_data
-python -m studies.distal_pancreatectomy.run_public_analysis
-```
-
-Run tests and build the documentation site:
-
-```bash
-pytest
-mkdocs build --strict
-```
-
-## Library Example
 
 ```python
 import pandas as pd
 
-from winratio import WinRatioConfig, WinRatioOutcome, compute_win_ratio
+from winratiopy import Outcome, WinRatio
 
-df = pd.DataFrame(
+data = pd.DataFrame(
     {
-        "group": ["A", "A", "B", "B"],
-        "mort90": [0, 0, 1, 0],
-        "major_comp": [0, 1, 1, 1],
-        "los_days": [7, 8, 11, 9],
+        "arm": ["A", "B", "A", "B"],
+        "pair": [1, 1, 2, 2],
+        "death90": [0, 0, 1, 1],
+        "clavien": [0, 3, 4, 3],
+        "popf": [0, 1, 2, 0],
+        "readmission": [0, 0, 0, 1],
+        "los": [7, 10, 12, 9],
     }
 )
 
-cfg = WinRatioConfig(
-    group_col="group",
+analysis = WinRatio(
+    group="arm",
     arm_a="A",
     arm_b="B",
     outcomes=[
-        WinRatioOutcome("Mortality", "mort90", "binary", "lower"),
-        WinRatioOutcome("Major complications", "major_comp", "binary", "lower"),
-        WinRatioOutcome("Length of stay", "los_days", "continuous", "lower"),
+        Outcome.binary("death90", name="90-day mortality", terminal=True),
+        Outcome.ordinal("clavien", name="Clavien-Dindo severity"),
+        Outcome.ordinal("popf", name="POPF severity"),
+        Outcome.binary("readmission", name="Readmission"),
+        Outcome.continuous("los", name="Length of stay", margin=2),
     ],
 )
 
-result = compute_win_ratio(df, cfg)["overall"]
-print(result["wr"])
+result = analysis.fit(data, pair_id="pair", n_boot=1000, seed=42)
+print(result.summary())
+print(result.tiers())
 ```
 
-## Analysis Reproduction Example
+When both patients have a terminal event and no valid event time is available, their comparison stops as a tie. Lower-priority outcomes are not used to rank two deaths.
 
-The public analysis configuration is [`studies/distal_pancreatectomy/config/primary_analysis.yaml`](/Users/marc-anthony/NC/main/academic/win_ratio/studies/distal_pancreatectomy/config/primary_analysis.yaml). The default workflow:
+## Adjustment Workflows
 
-1. Generates the public study dataset in [`data/public/distal_pancreatectomy_public.csv`](/Users/marc-anthony/NC/main/academic/win_ratio/data/public/distal_pancreatectomy_public.csv).
-2. Runs all-pairs and matched statistical analyses.
-3. Writes public summary outputs in [`results/public`](/Users/marc-anthony/NC/main/academic/win_ratio/results/public).
+Matching defaults to complete cases; simple single imputation must be explicitly requested.
 
-In the distal-pancreatectomy example, the primary matched analysis compares higher-volume centers with lower-volume centers and resolves each matched pair across an ordered hierarchy of postoperative outcomes: 90-day mortality, major complications, clinically relevant pancreatic fistula, readmission, and length of stay.
+```python
+from winratiopy import propensity_match
 
-Example output:
+matched = propensity_match(
+    cohort,
+    treat_col="arm",
+    treated_value="A",
+    covariates=["age", "bmi", "asa_ge3", "histology"],
+    exact_cols=["year", "hospital_type", "neoadjuvant"],
+    method="optimal",
+    missing="drop",
+)
+```
 
-![Example hierarchical flow output for the matched high-volume versus lower-volume center analysis](figure2_consort_flow.png)
+For analyses using all available records, `estimate_propensity_weights` provides overlap, ATT, and ATE weights. `compute_weighted_gpc` uses subject-weight cross-products and returns the WR, favorable-pair probability, win difference, information rate, and tier attribution.
 
-*Example hierarchical flow output for the matched high-volume versus lower-volume center analysis.*
+For center-level exposures, `bootstrap_propensity_matched_win_ratio` resamples centers within arm, refits the propensity score, rematches, and recomputes the assigned-pair WR. `bootstrap_propensity_weighted_gpc` performs the analogous score-refitted weighting analysis.
 
-This figure illustrates how the hierarchical comparison is resolved tier by tier after propensity-score matching. It is included here as an example of the statistical-analysis output produced by the workflow, not as part of any manuscript-generation system.
+## MIDP Demonstrator
+
+The public configuration follows the current analysis architecture:
+
+- fixed higher-volume definition: more than 10 **all minimally invasive pancreatic resections** per complete contributed year;
+- primary hierarchy: 90-day mortality, major complications, CR-POPF, readmission, exact completed-day LOS;
+- both deaths tie when time to death is unavailable;
+- graded morbidity/POPF and 1-day, 2-day, no-LOS, and categorical (`<=7`, `8-13`, `>13` days) LOS sensitivities;
+- IO and TBO reconstructed from explicit components;
+- complete-case 1:1 optimal propensity matching as the public primary design;
+- matched-sample all-pair GPC and overlap-weighted GPC sensitivities.
+
+The committed dataset is synthetic. Its estimates demonstrate the software and are not the AFC manuscript results.
+
+```bash
+python -m studies.distal_pancreatectomy.export_public_data
+python -m studies.distal_pancreatectomy.run_public_analysis --n-boot 400
+```
+
+Key files:
+
+- [Public analysis configuration](studies/distal_pancreatectomy/config/primary_analysis.yaml)
+- [Synthetic public dataset](data/public/distal_pancreatectomy_public.csv)
+- [Public result manifest](results/public/reproducibility_manifest.json)
+- [Study-layer documentation](studies/distal_pancreatectomy/README.md)
+
+## Verification
+
+```bash
+pytest
+ruff check src tests studies examples
+mkdocs build --strict
+python -m build
+```
 
 ## Repository Layout
 
-- [`src/winratio`](/Users/marc-anthony/NC/main/academic/win_ratio/src/winratio): installable Python package.
-- [`studies/distal_pancreatectomy`](/Users/marc-anthony/NC/main/academic/win_ratio/studies/distal_pancreatectomy): study-specific statistical-analysis workflow.
-- [`examples`](/Users/marc-anthony/NC/main/academic/win_ratio/examples): generic package examples.
-- [`data/public`](/Users/marc-anthony/NC/main/academic/win_ratio/data/public): synthetic public dataset and dataset manifest.
-- [`results/public`](/Users/marc-anthony/NC/main/academic/win_ratio/results/public): committed public analysis outputs.
-- [`docs`](/Users/marc-anthony/NC/main/academic/win_ratio/docs): documentation site content.
-- [`tests`](/Users/marc-anthony/NC/main/academic/win_ratio/tests): automated test suite.
+- `src/winratiopy`: preferred import interface.
+- `src/winratio`: backward-compatible implementation package.
+- `studies/distal_pancreatectomy`: public-safe MIDP workflow.
+- `data/public`: synthetic input and disclosure manifest.
+- `results/public`: reproducible synthetic outputs.
+- `tests`: unit and end-to-end tests.
+- `docs`: methodology, API, and reproducibility documentation.
 
-## Reviewer Notes
+## Citation
 
-- The public row-level dataset is synthetic by design.
-- The package API is fully functional and tested on the public schema.
-- The study layer documents what parts of the statistical analysis are reproducible from public data and what requires protected inputs.
+Marc-Anthony Chouillard is the primary code author and maintainer. Associated study authors include Clément Pastier and Sébastien Gaujoux for the Association Française de Chirurgie Study Group. Cite the software metadata in [CITATION.cff](CITATION.cff); article details will be added after publication.
 
-Further details start at [`docs/index.md`](/Users/marc-anthony/NC/main/academic/win_ratio/docs/index.md).
+License: MIT.

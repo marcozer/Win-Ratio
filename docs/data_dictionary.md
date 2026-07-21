@@ -1,21 +1,20 @@
-# Data Dictionary
+# Public Data Dictionary
 
-Public study variables:
+The committed rows are synthetic.
 
-- `site_id`: neutral site label
-- `year_band`: grouped calendar period
-- `age_band`: age category
-- `sex`: public categorical sex field
-- `bmi_band`: grouped BMI category
-- `asa_group`: grouped ASA class
-- `malignant_case`: malignancy indicator
-- `neoadjuvant`: neoadjuvant-treatment indicator
-- `pathology_group`: collapsed pathology category
-- `treatment_group`: high-volume vs other site grouping
-- `spleen_management`: grouped spleen-management category
-- `mort90`: mortality within 90 days
-- `clavien_major`: major-complication indicator
-- `popf_BC`: clinically relevant pancreatic fistula indicator
-- `reoperation`: reoperation indicator
-- `readmission`: readmission indicator
-- `los_days`: rounded length of stay
+Design fields include neutral site ID, two-year band, hospital type, age, sex, BMI, ASA group, CCI, malignancy, neoadjuvant treatment, collapsed histology, tumor size, functional impairment, prior abdominal surgery, chronic pancreatitis, kidney disease, cardiac history, volume group, and spleen-management group.
+
+Outcome fields:
+
+- `mort90`: death within 90 days;
+- `clavien_grade`: 0, III, or IV severity representation;
+- `clavien_major`: grade III or higher indicator;
+- `popf_grade`: 0, B, or C severity representation;
+- `popf_BC`: clinically relevant POPF indicator;
+- `postpancreatectomy_hemorrhage` and `bile_leak`;
+- `reoperation` and `readmission`;
+- `los_days`: completed postoperative days;
+- `ideal_outcome`: survival without major complication, CR-POPF, readmission, or reoperation and LOS `<=13` days;
+- `textbook_outcome`: survival without major complication, CR-POPF, hemorrhage, bile leak, or readmission.
+
+`treatment_group` is derived only from a supplied mean annual all-MIP field. The preprocessing code intentionally refuses to substitute MIDP-only counts.
