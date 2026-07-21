@@ -1,11 +1,23 @@
 cff-version: 1.2.0
 title: WinRatioPy
-message: If you use this software, please cite the repository and the associated study.
+message: If you use this software, please cite this software release.
 type: software
 authors:
   - family-names: Chouillard
     given-names: Marc-Anthony
+abstract: >-
+  Python software for win-ratio analyses of prioritized clinical outcomes,
+  including assigned-pair and all-pair generalized pairwise comparisons,
+  propensity-score matching and weighting, tier-level decomposition, and
+  cluster-aware inference.
 repository-code: https://github.com/marcozer/Win-Ratio
 url: https://github.com/marcozer/Win-Ratio
 license: MIT
 version: 0.2.0
+date-released: 2026-07-21
+keywords:
+  - win ratio
+  - generalized pairwise comparisons
+  - hierarchical composite endpoint
+  - propensity-score matching
+  - clinical outcomes
