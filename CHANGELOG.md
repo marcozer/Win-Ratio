@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+- Aligned the public MIDP demonstrator with the v25 analysis architecture.
+- Clarified that center volume is a supplied, previously published study-period mean of all minimally invasive pancreatic resections; MIDP-only counts cannot replace it.
+- Made graded Clavien-Dindo severity, graded CR-POPF severity, and a 1-day LOS tie margin the public primary hierarchy.
+- Updated exact-day, minimum 3-day, categorical, and no-LOS sensitivities, tests, documentation, and synthetic outputs.
+
 ## 0.2.0
 
 - Branded the distribution as `WinRatioPy` and added the `winratiopy` import while preserving `winratio` compatibility.

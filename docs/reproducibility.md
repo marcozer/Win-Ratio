@@ -15,6 +15,7 @@ Not reproducible from committed files:
 - the manuscript's 5000-replicate refit/rematch interval;
 - 50 center-aware chained-equation imputations;
 - the observed clinical screen and trial simulations;
+- identifiable center-year volume provenance files;
 - manuscript and journal-submission assets.
 
 The code exposes the required statistical primitives, but the public synthetic estimates must never be presented as manuscript results. `results/public/reproducibility_manifest.json` records this boundary in machine-readable form.

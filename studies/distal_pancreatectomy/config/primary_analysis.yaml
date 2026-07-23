@@ -1,13 +1,18 @@
 study_name: Distal pancreatectomy public statistical demonstrator
-analysis_version: v21
+analysis_version: v25
 
 volume_definition:
+  source: registry-provided, previously published study-period mean annual volume
   numerator: all minimally invasive pancreatic resections
-  denominator: complete contributed years
+  denominator: source study-period denominator
+  reconstruction_policy: never substitute MIDP-only counts; center-year reconstruction is a provenance audit only
   higher_volume: mean annual volume >10
   lower_volume: mean annual volume <=10
 
 primary:
+  analysis_key: graded_los_margin_1d
+  label: Primary graded hierarchy; LOS differences of 0 or 1 day tie
+  plot_label: "Primary: minimum 2-day LOS difference"
   group_col: treatment_group
   arm_a: HIGH_VOLUME
   arm_b: OTHER
@@ -20,14 +25,14 @@ primary:
       terminal: true
       terminal_value: 1
       missing_is: tie
-    - name: Major complications
-      column: clavien_major
-      kind: binary
+    - name: Clavien-Dindo severity (none, III, IV/V)
+      column: clavien_grade
+      kind: ordinal
       direction: lower
       missing_is: tie
-    - name: Clinically relevant pancreatic fistula
-      column: popf_BC
-      kind: binary
+    - name: Pancreatic fistula severity (none, B, C)
+      column: popf_grade
+      kind: ordinal
       direction: lower
       missing_is: tie
     - name: Readmission
@@ -35,30 +40,32 @@ primary:
       kind: binary
       direction: lower
       missing_is: tie
-    - name: Length of stay, exact completed days
+    - name: Length of stay (differences of 0 or 1 day tie)
       column: los_days
       kind: continuous
       direction: lower
-      tie_tol: 0
+      tie_tol: 1
       missing_is: tie
 
 sensitivities:
-  los_margin_1_day:
-    label: LOS differences of 1 day or less tie
-    los_margin: 1
+  exact_day_los:
+    label: Graded severity; exact-day LOS
+    plot_label: Exact-day LOS
+    outcome_name: Length of stay (exact completed days)
+    los_margin: 0
   los_margin_2_days:
-    label: LOS differences of 2 days or less tie
+    label: Graded severity; minimum 3-day LOS difference
+    plot_label: Minimum 3-day LOS difference
+    outcome_name: Length of stay (differences of 0, 1, or 2 days tie)
     los_margin: 2
   categorical_los:
-    label: LOS categorized as <=7, 8-13, or >13 days
+    label: Graded severity; LOS categorized as <=7, 8-13, or >13 days
+    plot_label: "LOS categories: <=7 / 8-13 / >13 d"
     los_cutpoints: [7, 13]
   no_los:
-    label: Four-tier hierarchy without LOS
+    label: Graded severity; four-tier hierarchy without LOS
+    plot_label: LOS omitted
     omit_los: true
-  graded_2_day:
-    label: Graded morbidity and fistula severity with a 2-day LOS margin
-    graded: true
-    los_margin: 2
 
 binary_benchmarks:
   outcomes:

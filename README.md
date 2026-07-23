@@ -77,10 +77,11 @@ For center-level exposures, `bootstrap_propensity_matched_win_ratio` resamples c
 
 The public configuration follows the current analysis architecture:
 
-- fixed higher-volume definition: more than 10 **all minimally invasive pancreatic resections** per complete contributed year;
-- primary hierarchy: 90-day mortality, major complications, CR-POPF, readmission, exact completed-day LOS;
+- fixed higher-volume definition: registry-provided, previously published study-period mean annual volume of more than 10 **all minimally invasive pancreatic resections**;
+- the exposure is never reconstructed from MIDP-only counts; center-year reconstruction is a provenance audit, not the primary definition;
+- primary hierarchy: 90-day mortality, graded Clavien-Dindo severity, graded CR-POPF severity, readmission, and LOS with differences of 0 or 1 completed day tied;
 - both deaths tie when time to death is unavailable;
-- graded morbidity/POPF and 1-day, 2-day, no-LOS, and categorical (`<=7`, `8-13`, `>13` days) LOS sensitivities;
+- exact-day, minimum 3-day, no-LOS, and categorical (`<=7`, `8-13`, `>13` days) LOS sensitivities;
 - IO and TBO reconstructed from explicit components;
 - complete-case 1:1 optimal propensity matching as the public primary design;
 - matched-sample all-pair GPC and overlap-weighted GPC sensitivities.

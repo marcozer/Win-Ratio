@@ -1,19 +1,21 @@
 {
   "study_name": "Distal pancreatectomy public statistical demonstrator",
-  "analysis_version": "v21",
+  "analysis_version": "v25",
   "dataset_path": "data/public/distal_pancreatectomy_public.csv",
   "volume_definition": {
+    "source": "registry-provided, previously published study-period mean annual volume",
     "numerator": "all minimally invasive pancreatic resections",
-    "denominator": "complete contributed years",
+    "denominator": "source study-period denominator",
+    "reconstruction_policy": "never substitute MIDP-only counts; center-year reconstruction is a provenance audit only",
     "higher_volume": "mean annual volume >10",
     "lower_volume": "mean annual volume <=10"
   },
   "unadjusted_all_pairs": {
     "point": {
-      "wins": 86251,
-      "losses": 59254,
-      "ties": 7771,
-      "wr": 1.4556148108144598,
+      "wins": 77749,
+      "losses": 52839,
+      "ties": 22688,
+      "wr": 1.4714320861484889,
       "details": {
         "n_a": 318,
         "n_b": 482,
@@ -24,33 +26,33 @@
         "pair_strategy": "all_pairs",
         "tier_wins": [
           1264,
-          16920,
-          14316,
-          7557,
-          46194
+          17311,
+          14362,
+          7326,
+          37486
         ],
         "tier_losses": [
           956,
-          14212,
-          15624,
-          4391,
-          24071
+          14685,
+          15806,
+          4215,
+          17177
         ],
-        "tier_ties": 7771,
+        "tier_ties": 22688,
         "tier_names": [
           "Mortality within 90 days",
-          "Major complications",
-          "Clinically relevant pancreatic fistula",
+          "Clavien-Dindo severity (none, III, IV/V)",
+          "Pancreatic fistula severity (none, B, C)",
           "Readmission",
-          "Length of stay, exact completed days"
+          "Length of stay (differences of 0 or 1 day tie)"
         ]
       }
     },
     "bootstrap": {
-      "wr": 1.4556148108144598,
+      "wr": 1.4714320861484889,
       "ci": [
-        1.2670538805133822,
-        1.6788729591226998
+        1.2590317721921247,
+        1.7379991498632945
       ],
       "n_boot": 400,
       "seed": 42,
@@ -62,10 +64,10 @@
   },
   "primary_assigned_pairs": {
     "point": {
-      "wins": 161,
-      "losses": 86,
-      "ties": 11,
-      "wr": 1.872093023255814,
+      "wins": 145,
+      "losses": 79,
+      "ties": 34,
+      "wr": 1.8354430379746836,
       "details": {
         "n_a": 258,
         "n_b": 258,
@@ -80,29 +82,29 @@
           32,
           29,
           10,
-          89
+          73
         ],
         "tier_losses": [
           1,
-          19,
-          27,
-          7,
-          32
+          20,
+          29,
+          5,
+          24
         ],
         "tier_names": [
           "Mortality within 90 days",
-          "Major complications",
-          "Clinically relevant pancreatic fistula",
+          "Clavien-Dindo severity (none, III, IV/V)",
+          "Pancreatic fistula severity (none, B, C)",
           "Readmission",
-          "Length of stay, exact completed days"
+          "Length of stay (differences of 0 or 1 day tie)"
         ]
       }
     },
     "bootstrap": {
-      "wr": 1.872093023255814,
+      "wr": 1.8354430379746836,
       "ci": [
-        1.0735577915376677,
-        2.0609427609427606
+        1.0499548192771084,
+        2.122721088435374
       ],
       "n_boot": 400,
       "n_successful": 400,
@@ -118,39 +120,39 @@
   },
   "matched_sample_all_pair_gpc": {
     "point": {
-      "wins": 39519.0,
-      "losses": 23706.0,
-      "ties": 3339.0,
-      "wr": 1.667046317388003,
-      "win_probability_among_informative": 0.6250533807829182,
-      "favorable_pair_probability": 0.6187804218496484,
-      "win_difference": 0.23756084369929692,
-      "information_rate": 0.9498377501352082,
-      "tie_adjusted_odds": 1.6231601347756692,
+      "wins": 35869.0,
+      "losses": 20969.0,
+      "ties": 9726.0,
+      "wr": 1.7105727502503696,
+      "win_probability_among_informative": 0.6310742812906858,
+      "favorable_pair_probability": 0.61192236043507,
+      "win_difference": 0.22384472087014,
+      "information_rate": 0.8538849828736254,
+      "tie_adjusted_odds": 1.576803964075565,
       "details": {
         "n_a": 258,
         "n_b": 258,
         "total_pair_weight": 66564.0,
         "tier_wins": [
           512.0,
-          8388.0,
-          6917.0,
-          2932.0,
-          20770.0
+          8523.0,
+          7007.0,
+          2810.0,
+          17017.0
         ],
         "tier_losses": [
           512.0,
-          5060.0,
-          6408.0,
-          1735.0,
-          9991.0
+          5276.0,
+          6481.0,
+          1656.0,
+          7044.0
         ],
         "tier_names": [
           "Mortality within 90 days",
-          "Major complications",
-          "Clinically relevant pancreatic fistula",
+          "Clavien-Dindo severity (none, III, IV/V)",
+          "Pancreatic fistula severity (none, B, C)",
           "Readmission",
-          "Length of stay, exact completed days"
+          "Length of stay (differences of 0 or 1 day tie)"
         ],
         "weight_col": null,
         "ess_a": 258.0,
@@ -159,10 +161,10 @@
       }
     },
     "bootstrap": {
-      "wr": 1.667046317388003,
+      "wr": 1.7105727502503696,
       "ci": [
-        1.3930386367493144,
-        2.0165913878411676
+        1.3915540281483791,
+        2.1525299208637207
       ],
       "n_boot": 400,
       "seed": 62,
@@ -172,39 +174,39 @@
   },
   "overlap_weighted_gpc": {
     "point": {
-      "wins": 18927.005457746247,
-      "losses": 13032.261014354506,
-      "ties": 1723.263520063848,
-      "wr": 1.4523193969871322,
-      "win_probability_among_informative": 0.5922227743953015,
-      "favorable_pair_probability": 0.5875044785050737,
-      "win_difference": 0.17500895701014754,
-      "information_rate": 0.9488380617351272,
-      "tie_adjusted_odds": 1.4242687444845386,
+      "wins": 17041.514458526828,
+      "losses": 11618.090271137224,
+      "ties": 5022.925262500548,
+      "wr": 1.466808577039808,
+      "win_probability_among_informative": 0.5946179167254199,
+      "favorable_pair_probability": 0.580507969393202,
+      "win_difference": 0.16101593878640433,
+      "information_rate": 0.850874466268745,
+      "tie_adjusted_odds": 1.3838355130453694,
       "details": {
         "n_a": 315,
         "n_b": 482,
         "total_pair_weight": 33682.52999216461,
         "tier_wins": [
           265.8226350073932,
-          3501.4430251525096,
-          3089.790108422227,
-          1637.006427358293,
-          10432.943261805825
+          3584.8844406795206,
+          3095.7790238769658,
+          1589.544461061368,
+          8505.483897901582
         ],
         "tier_losses": [
           196.0454643340334,
-          3318.519191809304,
-          3228.9585902004965,
-          996.5235684226409,
-          5292.214199588032
+          3426.5237648923944,
+          3264.598233305286,
+          958.7615974548348,
+          3772.1612111506743
         ],
         "tier_names": [
           "Mortality within 90 days",
-          "Major complications",
-          "Clinically relevant pancreatic fistula",
+          "Clavien-Dindo severity (none, III, IV/V)",
+          "Pancreatic fistula severity (none, B, C)",
           "Readmission",
-          "Length of stay, exact completed days"
+          "Length of stay (differences of 0 or 1 day tie)"
         ],
         "weight_col": "analysis_weight",
         "ess_a": 307.5869719146063,
@@ -213,10 +215,10 @@
       }
     },
     "bootstrap": {
-      "wr": 1.4523193969871322,
+      "wr": 1.466808577039808,
       "ci": [
-        1.1877317859835206,
-        1.7079666677449528
+        1.1923903837329637,
+        1.7638646709764738
       ],
       "n_boot": 400,
       "n_successful": 400,

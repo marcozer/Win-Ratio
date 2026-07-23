@@ -33,7 +33,7 @@ from .wr import (
     compute_win_ratio_multi_arm,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 __all__ = [
     "MatchResult",

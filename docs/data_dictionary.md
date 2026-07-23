@@ -17,4 +17,4 @@ Outcome fields:
 - `ideal_outcome`: survival without major complication, CR-POPF, readmission, or reoperation and LOS `<=13` days;
 - `textbook_outcome`: survival without major complication, CR-POPF, hemorrhage, bile leak, or readmission.
 
-`treatment_group` is derived only from a supplied mean annual all-MIP field. The preprocessing code intentionally refuses to substitute MIDP-only counts.
+`treatment_group` is derived only from the supplied, previously published mean annual all-MIP field. The preprocessing code intentionally refuses to substitute MIDP-only counts. Reconstructed center-year counts may be used to audit exposure provenance but do not redefine the primary group.

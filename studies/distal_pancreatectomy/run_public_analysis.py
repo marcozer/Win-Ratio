@@ -86,7 +86,10 @@ def _sensitivity_config(primary: Dict[str, Any], specification: Dict[str, Any]) 
         )
     else:
         outcomes[-1]["tie_tol"] = float(specification.get("los_margin", 0))
-        outcomes[-1]["name"] = f"Length of stay ({int(outcomes[-1]['tie_tol'])}-day margin)"
+        outcomes[-1]["name"] = specification.get(
+            "outcome_name",
+            f"Length of stay ({int(outcomes[-1]['tie_tol'])}-day margin)",
+        )
     return result
 
 
@@ -174,7 +177,10 @@ def run_public_analysis(
     matching_balance = pd.concat([before_balance, after_balance], ignore_index=True)
 
     sensitivity_rows = []
-    tier_tables = [_tier_table(matched_point, matched_cfg, "primary_exact_day")]
+    primary_key = primary_dict.get("analysis_key", "primary")
+    primary_label = primary_dict.get("label", "Primary hierarchy")
+    primary_plot_label = primary_dict.get("plot_label", primary_label)
+    tier_tables = [_tier_table(matched_point, matched_cfg, primary_key)]
     for name, specification in config["sensitivities"].items():
         sensitivity_dict = _sensitivity_config(primary_dict, specification)
         sensitivity_cfg = _matched_config(sensitivity_dict)
@@ -189,6 +195,7 @@ def run_public_analysis(
             {
                 "analysis": name,
                 "label": specification["label"],
+                "plot_label": specification.get("plot_label", specification["label"]),
                 "wins": point["wins"],
                 "losses": point["losses"],
                 "ties": point["ties"],
@@ -252,6 +259,8 @@ def run_public_analysis(
         "matched_cfg": matched_cfg,
         "matched_point": matched_point,
         "matched_boot": matched_boot,
+        "primary_label": primary_label,
+        "primary_plot_label": primary_plot_label,
         "primary_risk_differences": primary_risk_differences,
         "matching_balance": matching_balance,
         "sensitivities": pd.DataFrame(sensitivity_rows),
@@ -293,13 +302,13 @@ def plot_summary(results: Dict[str, Any], output_stem: Path) -> None:
         [
             pd.DataFrame(
                 [{
-                    "label": "Primary exact-day LOS",
+                    "plot_label": results["primary_plot_label"],
                     "wr": results["matched_point"]["wr"],
                     "ci_lower": results["matched_boot"]["ci"][0],
                     "ci_upper": results["matched_boot"]["ci"][1],
                 }]
             ),
-            sensitivities[["label", "wr", "ci_lower", "ci_upper"]],
+            sensitivities[["plot_label", "wr", "ci_lower", "ci_upper"]],
         ],
         ignore_index=True,
     )
@@ -317,7 +326,7 @@ def plot_summary(results: Dict[str, Any], output_stem: Path) -> None:
         capsize=3,
     )
     ax.axvline(1.0, color=colors["null"], linewidth=1, linestyle="--")
-    ax.set_yticks(y, display["label"])
+    ax.set_yticks(y, display["plot_label"])
     ax.set_xlabel("Win ratio (higher-volume / other)")
     ax.set_title("Hierarchy and LOS sensitivity")
     fig.tight_layout()

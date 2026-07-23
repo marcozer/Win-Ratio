@@ -4,10 +4,12 @@ import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from studies.distal_pancreatectomy.export_public_data import build_public_dataset
 from studies.distal_pancreatectomy.preprocess import audit_public_dataframe, create_synthetic_public_dataset
 from studies.distal_pancreatectomy.run_public_analysis import main as run_public_analysis_main
+from winratiopy import config_from_dict
 
 
 def test_public_dataset_audit_rejects_free_text_column() -> None:
@@ -62,7 +64,31 @@ def test_public_analysis_script_creates_outputs(tmp_path: Path, monkeypatch) -> 
     assert (output_dir / "binary_benchmarks.csv").exists()
     assert (output_dir / "win_ratio_overview.svg").exists()
     summary = json.loads((output_dir / "win_ratio_summary.json").read_text())
-    assert summary["analysis_version"] == "v21"
+    assert summary["analysis_version"] == "v25"
     assert "primary_assigned_pairs" in summary
     assert "matched_sample_all_pair_gpc" in summary
     assert "overlap_weighted_gpc" in summary
+
+
+def test_v25_public_configuration_locks_exposure_and_primary_hierarchy() -> None:
+    config = yaml.safe_load(
+        Path("studies/distal_pancreatectomy/config/primary_analysis.yaml").read_text()
+    )
+    volume = config["volume_definition"]
+    assert config["analysis_version"] == "v25"
+    assert volume["numerator"] == "all minimally invasive pancreatic resections"
+    assert "published" in volume["source"]
+    assert "MIDP-only" in volume["reconstruction_policy"]
+    assert "complete contributed years" not in str(volume)
+
+    primary = config_from_dict(config["primary"])
+    assert [outcome.column for outcome in primary.outcomes] == [
+        "mort90",
+        "clavien_grade",
+        "popf_grade",
+        "readmission",
+        "los_days",
+    ]
+    assert primary.outcomes[1].kind == "ordinal"
+    assert primary.outcomes[2].kind == "ordinal"
+    assert primary.outcomes[-1].tie_tol == 1

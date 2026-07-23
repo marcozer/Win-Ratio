@@ -7,8 +7,8 @@ This study layer applies WinRatioPy to a synthetic MIDP cohort using the current
 - `run_public_analysis.py`: matching, assigned-pair WR, hierarchy sensitivities, matched all-pair GPC, overlap weighting, IO/TBO, diagnostics, and public figures.
 - `config/primary_analysis.yaml`: exposure, endpoint, design, and sensitivity definitions.
 
-The higher-volume group means more than 10 all minimally invasive pancreatic resections per complete contributed year. The code refuses to derive this exposure from distal pancreatectomy counts alone.
+The higher-volume group uses the registry-provided, previously published study-period mean annual volume of all minimally invasive pancreatic resections and compares more than 10 procedures/y with 10 or fewer. The code refuses to derive this exposure from distal pancreatectomy counts alone; a center-year reconstruction can audit provenance but cannot silently replace the supplied exposure.
 
-The primary public hierarchy is mortality, major complications, CR-POPF, readmission, and exact-day LOS. Both deaths stop as a tie. Sensitivities cover graded severity, 1- and 2-day margins, no LOS, and LOS categories of `<=7`, `8-13`, and `>13` days.
+The primary public hierarchy is mortality, graded Clavien-Dindo severity, graded CR-POPF severity, readmission, and LOS, with differences of 0 or 1 completed day tied. Both deaths stop as a tie. Sensitivities cover exact-day and minimum 3-day LOS differences, no LOS, and LOS categories of `<=7`, `8-13`, and `>13` days.
 
 The committed [dataset](../../data/public/distal_pancreatectomy_public.csv) is synthetic. The generated estimates demonstrate software behavior and are not manuscript results.
