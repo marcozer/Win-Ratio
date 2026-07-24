@@ -8,7 +8,12 @@ import yaml
 
 from studies.distal_pancreatectomy.export_public_data import build_public_dataset
 from studies.distal_pancreatectomy.preprocess import audit_public_dataframe, create_synthetic_public_dataset
-from studies.distal_pancreatectomy.run_public_analysis import main as run_public_analysis_main
+from studies.distal_pancreatectomy.run_public_analysis import (
+    _sensitivity_config,
+)
+from studies.distal_pancreatectomy.run_public_analysis import (
+    main as run_public_analysis_main,
+)
 from winratiopy import config_from_dict
 
 
@@ -62,20 +67,21 @@ def test_public_analysis_script_creates_outputs(tmp_path: Path, monkeypatch) -> 
     assert (output_dir / "matched_risk_differences.csv").exists()
     assert (output_dir / "hierarchy_sensitivities.csv").exists()
     assert (output_dir / "binary_benchmarks.csv").exists()
+    assert (output_dir / "matching_support.csv").exists()
     assert (output_dir / "win_ratio_overview.svg").exists()
     summary = json.loads((output_dir / "win_ratio_summary.json").read_text())
-    assert summary["analysis_version"] == "v25"
+    assert summary["analysis_version"] == "v26"
     assert "primary_assigned_pairs" in summary
     assert "matched_sample_all_pair_gpc" in summary
     assert "overlap_weighted_gpc" in summary
 
 
-def test_v25_public_configuration_locks_exposure_and_primary_hierarchy() -> None:
+def test_v26_public_configuration_locks_exposure_and_primary_hierarchy() -> None:
     config = yaml.safe_load(
         Path("studies/distal_pancreatectomy/config/primary_analysis.yaml").read_text()
     )
     volume = config["volume_definition"]
-    assert config["analysis_version"] == "v25"
+    assert config["analysis_version"] == "v26"
     assert volume["numerator"] == "all minimally invasive pancreatic resections"
     assert "published" in volume["source"]
     assert "MIDP-only" in volume["reconstruction_policy"]
@@ -92,3 +98,17 @@ def test_v25_public_configuration_locks_exposure_and_primary_hierarchy() -> None
     assert primary.outcomes[1].kind == "ordinal"
     assert primary.outcomes[2].kind == "ordinal"
     assert primary.outcomes[-1].tie_tol == 1
+    assert "popf_before_clavien" in config["sensitivities"]
+    assert "readmission_before_popf" in config["sensitivities"]
+
+
+def test_order_sensitivities_preserve_the_main_los_margin() -> None:
+    config = yaml.safe_load(
+        Path("studies/distal_pancreatectomy/config/primary_analysis.yaml").read_text()
+    )
+    primary = config["primary"]
+    for key in ("popf_before_clavien", "readmission_before_popf"):
+        sensitivity = _sensitivity_config(primary, config["sensitivities"][key])
+        parsed = config_from_dict(sensitivity)
+        assert parsed.outcomes[-1].tie_tol == 1
+        assert "differences of 0 or 1 day tie" in parsed.outcomes[-1].name

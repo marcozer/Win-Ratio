@@ -23,6 +23,7 @@ from winratiopy import (
     compute_win_ratio,
     config_from_dict,
     paired_risk_difference_bootstrap,
+    propensity_overlap_coefficient,
     summarize_component_outcomes,
     summarize_wr_metrics_from_overall,
 )
@@ -84,13 +85,60 @@ def _sensitivity_config(primary: Dict[str, Any], specification: Dict[str, Any]) 
                 "tie_tol": 0,
             }
         )
-    else:
+    elif "los_margin" in specification or "outcome_name" in specification:
         outcomes[-1]["tie_tol"] = float(specification.get("los_margin", 0))
         outcomes[-1]["name"] = specification.get(
             "outcome_name",
             f"Length of stay ({int(outcomes[-1]['tie_tol'])}-day margin)",
         )
+    if specification.get("outcome_order") is not None:
+        order = [int(index) for index in specification["outcome_order"]]
+        if sorted(order) != list(range(len(outcomes))):
+            raise ValueError("outcome_order must permute every outcome index")
+        result["outcomes"] = [outcomes[index] for index in order]
     return result
+
+
+def _support_diagnostics(results: Dict[str, Any], primary: Dict[str, Any]) -> pd.DataFrame:
+    matching = results["matching"]
+    full = matching.full_df.copy()
+    matched = matching.matched_df.copy()
+    treatment = primary["group_col"]
+    treated = primary["arm_a"]
+    rows = []
+    for population, frame in (("eligible_common_support", full), ("retained_matched", matched)):
+        counts = frame[treatment].value_counts()
+        first_n = int(counts.get(treated, 0))
+        comparator_n = int(len(frame) - first_n)
+        overlap = propensity_overlap_coefficient(
+            frame["_PS"],
+            frame[treatment],
+            treated=treated,
+        )
+        rows.append(
+            {
+                "population": population,
+                "first_listed_group": treated,
+                "first_listed_n": first_n,
+                "comparator_n": comparator_n,
+                "propensity_histogram_overlap": overlap,
+                "rows_dropped_for_missing_covariates": matching.rows_dropped_missing,
+                "matched_pairs": matching.pairs,
+            }
+        )
+    eligible = rows[0]
+    retained = rows[1]
+    retained["first_listed_retention_pct"] = (
+        100 * retained["first_listed_n"] / eligible["first_listed_n"]
+        if eligible["first_listed_n"]
+        else None
+    )
+    retained["comparator_retention_pct"] = (
+        100 * retained["comparator_n"] / eligible["comparator_n"]
+        if eligible["comparator_n"]
+        else None
+    )
+    return pd.DataFrame(rows)
 
 
 def _tier_table(point: Dict[str, Any], cfg: WinRatioConfig, analysis: str) -> pd.DataFrame:
@@ -273,6 +321,10 @@ def run_public_analysis(
         "benchmarks": benchmark_table,
         "components": summarize_component_outcomes(matching.matched_df, matched_cfg),
         "metrics": summarize_wr_metrics_from_overall(matched_point),
+        "support": _support_diagnostics(
+            {"matching": matching},
+            primary_dict,
+        ),
     }
 
 
@@ -401,6 +453,7 @@ def main() -> None:
     results["metrics"].to_csv(args.output_dir / "matched_metrics.csv", index=False)
     results["primary_risk_differences"].to_csv(args.output_dir / "matched_risk_differences.csv", index=False)
     results["matching_balance"].to_csv(args.output_dir / "matching_balance.csv", index=False)
+    results["support"].to_csv(args.output_dir / "matching_support.csv", index=False)
     results["sensitivities"].to_csv(args.output_dir / "hierarchy_sensitivities.csv", index=False)
     results["tiers"].to_csv(args.output_dir / "tier_resolution.csv", index=False)
     results["benchmarks"].to_csv(args.output_dir / "binary_benchmarks.csv", index=False)
@@ -414,6 +467,7 @@ def main() -> None:
         "matched_metrics.csv",
         "matched_risk_differences.csv",
         "matching_balance.csv",
+        "matching_support.csv",
         "hierarchy_sensitivities.csv",
         "tier_resolution.csv",
         "binary_benchmarks.csv",

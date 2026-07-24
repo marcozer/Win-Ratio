@@ -13,8 +13,8 @@ abstract: >-
 repository-code: https://github.com/marcozer/Win-Ratio
 url: https://github.com/marcozer/Win-Ratio
 license: MIT
-version: 0.2.1
-date-released: 2026-07-23
+version: 0.2.2
+date-released: 2026-07-24
 keywords:
   - win ratio
   - generalized pairwise comparisons

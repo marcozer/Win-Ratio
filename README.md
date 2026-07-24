@@ -79,12 +79,13 @@ The public configuration follows the current analysis architecture:
 
 - fixed higher-volume definition: registry-provided, previously published study-period mean annual volume of more than 10 **all minimally invasive pancreatic resections**;
 - the exposure is never reconstructed from MIDP-only counts; center-year reconstruction is a provenance audit, not the primary definition;
-- primary hierarchy: 90-day mortality, graded Clavien-Dindo severity, graded CR-POPF severity, readmission, and LOS with differences of 0 or 1 completed day tied;
+- main exploratory hierarchy: 90-day mortality, graded Clavien-Dindo III/IV severity, graded CR-POPF B/C severity, readmission, and LOS with differences of 0 or 1 completed day tied;
 - both deaths tie when time to death is unavailable;
-- exact-day, minimum 3-day, no-LOS, and categorical (`<=7`, `8-13`, `>13` days) LOS sensitivities;
+- exact-day, minimum 3-day, no-LOS, categorical (`<=7`, `8-13`, `>13` days), and hierarchy-order sensitivities;
 - IO and TBO reconstructed from explicit components;
-- complete-case 1:1 optimal propensity matching as the public primary design;
+- complete-case 1:1 optimal propensity matching as the public main design;
 - matched-sample all-pair GPC and overlap-weighted GPC sensitivities.
+- explicit SMD, KS, variance-ratio, propensity-overlap, retention, and ESS diagnostics.
 
 The committed dataset is synthetic. Its estimates demonstrate the software and are not the AFC manuscript results.
 

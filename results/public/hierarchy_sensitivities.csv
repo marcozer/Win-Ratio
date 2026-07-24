@@ -3,3 +3,5 @@ exact_day_los,Graded severity; exact-day LOS,Exact-day LOS,160,87,11,1.839080459
 los_margin_2_days,Graded severity; minimum 3-day LOS difference,Minimum 3-day LOS difference,122,73,63,1.6712328767123288,1.252665007857517,2.152697067527576,0.7558139534883721
 categorical_los,"Graded severity; LOS categorized as <=7, 8-13, or >13 days",LOS categories: <=7 / 8-13 / >13 d,119,71,68,1.676056338028169,1.2602512322015336,2.2376059322033894,0.7364341085271318
 no_los,Graded severity; four-tier hierarchy without LOS,LOS omitted,72,55,131,1.309090909090909,0.9205698672911787,1.8636363636363635,0.49224806201550386
+popf_before_clavien,CR-POPF severity before Clavien-Dindo severity,POPF before Clavien-Dindo,143,81,34,1.7654320987654322,1.358675629290618,2.3383615013169448,0.8682170542635659
+readmission_before_popf,Readmission before CR-POPF severity,Readmission before POPF,146,78,34,1.8717948717948718,1.4666477272727272,2.4533048115079366,0.8682170542635659

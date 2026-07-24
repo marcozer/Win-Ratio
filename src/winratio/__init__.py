@@ -8,7 +8,11 @@ from .config import (
     config_from_dict,
     multi_arm_config_from_dict,
 )
-from .diagnostics import balance_diagnostics, effective_sample_size
+from .diagnostics import (
+    balance_diagnostics,
+    effective_sample_size,
+    propensity_overlap_coefficient,
+)
 from .gpc import bootstrap_weighted_gpc, compute_weighted_gpc
 from .inference import compute_e_value, compute_e_value_for_ci, logwr_wald_ci, logwr_wald_p_value
 from .match import MatchResult, propensity_match
@@ -33,7 +37,7 @@ from .wr import (
     compute_win_ratio_multi_arm,
 )
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 __all__ = [
     "MatchResult",
@@ -70,6 +74,7 @@ __all__ = [
     "logwr_wald_p_value",
     "multi_arm_config_from_dict",
     "propensity_match",
+    "propensity_overlap_coefficient",
     "paired_risk_difference_bootstrap",
     "summarize_component_outcomes",
     "summarize_wr_metrics_from_overall",

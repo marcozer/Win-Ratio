@@ -1,6 +1,6 @@
 outcome,column,kind,direction,tie_tol,missing_is,A_arm_value,A_n,A_n_nonmissing,A_events,A_rate,B_arm_value,B_n,B_n_nonmissing,B_events,B_rate,A_mean,A_sd,A_median,A_q1,A_q3,B_mean,B_sd,B_median,B_q1,B_q3
 Mortality within 90 days,mort90,binary,lower,0.0,tie,HIGH_VOLUME,258,258,2.0,0.007751937984496124,OTHER,258,258,2.0,0.007751937984496124,,,,,,,,,,
-"Clavien-Dindo severity (none, III, IV/V)",clavien_grade,ordinal,lower,0.0,tie,HIGH_VOLUME,258,258,,,OTHER,258,258,,,0.29844961240310075,0.9663992694714069,0.0,0.0,0.0,0.45348837209302323,1.1399055535747211,0.0,0.0,0.0
+"Clavien-Dindo severity (none, III, IV)",clavien_grade,ordinal,lower,0.0,tie,HIGH_VOLUME,258,258,,,OTHER,258,258,,,0.29844961240310075,0.9663992694714069,0.0,0.0,0.0,0.45348837209302323,1.1399055535747211,0.0,0.0,0.0
 "Pancreatic fistula severity (none, B, C)",popf_grade,ordinal,lower,0.0,tie,HIGH_VOLUME,258,258,,,OTHER,258,258,,,0.19767441860465115,0.47060936013734617,0.0,0.0,0.0,0.18992248062015504,0.44848989356377034,0.0,0.0,0.0
 Readmission,readmission,binary,lower,0.0,tie,HIGH_VOLUME,258,258,18.0,0.06976744186046512,OTHER,258,258,33.0,0.12790697674418605,,,,,,,,,,
 Length of stay (differences of 0 or 1 day tie),los_days,continuous,lower,1.0,tie,HIGH_VOLUME,258,258,,,OTHER,258,258,,,9.24031007751938,3.249124859841444,9.0,7.0,11.0,11.089147286821705,3.3271373355810714,11.0,9.0,13.0

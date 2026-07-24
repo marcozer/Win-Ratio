@@ -1,5 +1,5 @@
 study_name: Distal pancreatectomy public statistical demonstrator
-analysis_version: v25
+analysis_version: v26
 
 volume_definition:
   source: registry-provided, previously published study-period mean annual volume
@@ -11,8 +11,8 @@ volume_definition:
 
 primary:
   analysis_key: graded_los_margin_1d
-  label: Primary graded hierarchy; LOS differences of 0 or 1 day tie
-  plot_label: "Primary: minimum 2-day LOS difference"
+  label: Main exploratory graded hierarchy; LOS differences of 0 or 1 day tie
+  plot_label: "Main: minimum 2-day LOS difference"
   group_col: treatment_group
   arm_a: HIGH_VOLUME
   arm_b: OTHER
@@ -25,7 +25,7 @@ primary:
       terminal: true
       terminal_value: 1
       missing_is: tie
-    - name: Clavien-Dindo severity (none, III, IV/V)
+    - name: Clavien-Dindo severity (none, III, IV)
       column: clavien_grade
       kind: ordinal
       direction: lower
@@ -66,6 +66,14 @@ sensitivities:
     label: Graded severity; four-tier hierarchy without LOS
     plot_label: LOS omitted
     omit_los: true
+  popf_before_clavien:
+    label: CR-POPF severity before Clavien-Dindo severity
+    plot_label: POPF before Clavien-Dindo
+    outcome_order: [0, 2, 1, 3, 4]
+  readmission_before_popf:
+    label: Readmission before CR-POPF severity
+    plot_label: Readmission before POPF
+    outcome_order: [0, 1, 3, 2, 4]
 
 binary_benchmarks:
   outcomes:

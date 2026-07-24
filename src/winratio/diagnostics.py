@@ -16,6 +16,48 @@ def effective_sample_size(weights: Iterable[float]) -> float:
     return float(values.sum() ** 2 / np.square(values).sum())
 
 
+def propensity_overlap_coefficient(
+    propensity: Iterable[float],
+    treatment: Iterable[Any],
+    *,
+    treated: Any,
+    bins: int = 40,
+) -> float:
+    """Estimate arm overlap as the area under the lower PS histogram density.
+
+    The coefficient ranges from 0 (no empirical overlap) to 1 (identical
+    histogram densities). It is a descriptive diagnostic and depends modestly
+    on the requested number of equally spaced bins.
+    """
+
+    scores = np.asarray(list(propensity), dtype=float)
+    groups = np.asarray(list(treatment), dtype=object)
+    if scores.size != groups.size:
+        raise ValueError("propensity and treatment must have the same length")
+    if bins < 2:
+        raise ValueError("bins must be at least 2")
+    valid = (
+        np.isfinite(scores)
+        & (scores >= 0)
+        & (scores <= 1)
+        & ~pd.isna(groups)
+    )
+    scores = scores[valid]
+    groups = groups[valid]
+    if pd.Series(groups).nunique() > 2:
+        raise ValueError("treatment must contain at most 2 observed groups")
+    first = scores[groups == treated]
+    second = scores[groups != treated]
+    if not len(first) or not len(second):
+        return float("nan")
+    edges = np.linspace(0.0, 1.0, bins + 1)
+    first_density, _ = np.histogram(first, bins=edges, density=True)
+    second_density, _ = np.histogram(second, bins=edges, density=True)
+    return float(
+        np.minimum(first_density, second_density).sum() * np.diff(edges)[0]
+    )
+
+
 def _weighted_mean(values: np.ndarray, weights: np.ndarray) -> float:
     valid = np.isfinite(values) & np.isfinite(weights) & (weights >= 0)
     if not valid.any() or weights[valid].sum() == 0:

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2
+
+- Aligned the public MIDP demonstrator with the v26 main exploratory hierarchy.
+- Added fixed hierarchy-order sensitivities for CR-POPF before Clavien-Dindo severity and readmission before CR-POPF.
+- Added a public propensity-score overlap coefficient and explicit matching support and arm-retention output.
+- Clarified that grade V is represented by the terminal mortality tier rather than repeated in the Clavien-Dindo label.
+- Preserved the existing Python API and `winratio` compatibility namespace.
+
 ## 0.2.1
 
 - Aligned the public MIDP demonstrator with the v25 analysis architecture.

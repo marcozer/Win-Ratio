@@ -6,7 +6,7 @@ The AFC registry is governed clinical data with direct and indirect disclosure r
 
 ## Does the code implement the current hierarchy?
 
-Yes. It places graded Clavien-Dindo severity before graded CR-POPF severity, stops when both records have a terminal death, uses a 1-day LOS tie margin in the primary hierarchy, and implements exact-day, minimum 3-day, categorical, and no-LOS variants.
+Yes. It places graded Clavien-Dindo III/IV severity before graded CR-POPF B/C severity, stops when both records have a terminal death, uses a 1-day LOS tie margin in the main hierarchy, and implements exact-day, minimum 3-day, categorical, no-LOS, and order-permutation variants.
 
 ## Is center volume recalculated from the public MIDP cohort?
 

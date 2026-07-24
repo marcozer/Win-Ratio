@@ -1,6 +1,6 @@
 {
   "study_name": "Distal pancreatectomy public statistical demonstrator",
-  "analysis_version": "v25",
+  "analysis_version": "v26",
   "dataset_path": "data/public/distal_pancreatectomy_public.csv",
   "volume_definition": {
     "source": "registry-provided, previously published study-period mean annual volume",
@@ -41,7 +41,7 @@
         "tier_ties": 22688,
         "tier_names": [
           "Mortality within 90 days",
-          "Clavien-Dindo severity (none, III, IV/V)",
+          "Clavien-Dindo severity (none, III, IV)",
           "Pancreatic fistula severity (none, B, C)",
           "Readmission",
           "Length of stay (differences of 0 or 1 day tie)"
@@ -93,7 +93,7 @@
         ],
         "tier_names": [
           "Mortality within 90 days",
-          "Clavien-Dindo severity (none, III, IV/V)",
+          "Clavien-Dindo severity (none, III, IV)",
           "Pancreatic fistula severity (none, B, C)",
           "Readmission",
           "Length of stay (differences of 0 or 1 day tie)"
@@ -149,7 +149,7 @@
         ],
         "tier_names": [
           "Mortality within 90 days",
-          "Clavien-Dindo severity (none, III, IV/V)",
+          "Clavien-Dindo severity (none, III, IV)",
           "Pancreatic fistula severity (none, B, C)",
           "Readmission",
           "Length of stay (differences of 0 or 1 day tie)"
@@ -203,7 +203,7 @@
         ],
         "tier_names": [
           "Mortality within 90 days",
-          "Clavien-Dindo severity (none, III, IV/V)",
+          "Clavien-Dindo severity (none, III, IV)",
           "Pancreatic fistula severity (none, B, C)",
           "Readmission",
           "Length of stay (differences of 0 or 1 day tie)"
